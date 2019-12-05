@@ -8,11 +8,4 @@ exports.handler = async(event) => {
         password: "123123"
     }
     const newEvent = {...event, body: JSON.stringify(body)};
-
-
-    const response = {
-        code: 200,
-        body: JSON.stringify(newEvent)
-    }
-    return response;
 };
