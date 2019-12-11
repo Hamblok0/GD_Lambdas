@@ -5,13 +5,18 @@ const bcrypt = require("bcrypt");
 
 AWS.config.update({ region: "us-east-2" });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
+const secret = process.env.secret;
 
-const validate = email => {
+const validate = body => {
   return new Promise((resolve, reject) => {
+    if (!body || !body.email || !body.password) {
+      reject({ code: 400, msg: "Email and/or password was not submitted" });
+      return;
+    }
     const params = {
       TableName: "Users",
       Key: {
-        "email": email
+        "email": body.email
       }
     };
 
@@ -34,7 +39,8 @@ const createUser = userData => {
     bcrypt.hash(userData.password, 10, (err, hash) => {
       if (err) {
         console.log(`HASH ERR: ${err}`)
-        reject({code: 500, msg: "Internal server error"})
+        reject({ code: 500, msg: "Internal server error" });
+        return;
       }
 
       const params = {
@@ -50,29 +56,42 @@ const createUser = userData => {
       ddb.put(params, (err, data) => {
         if (err) {
           console.log(`DDB ERR ${err}`)
-          reject({code: 500, msg: "Internal server error"})
+          reject({ code: 500, msg: "Internal server error" })
+          return;
         }
-        resolve();
+        const payload = {
+          "email": params.email,
+          "id": params.id
+        }
+        resolve(payload);
       })
     })
   })
 }
 
-exports.handler = async event => {
-  const body = {
-    email: "someguy@gmail.com",
-    password: "123123"
-  };
+const createToken = payload => {
+  return new Promise((resolve, reject) => {
+    jwt.sign({payload}, secret, { expiresIn: '7d' }, (err, token) => {
+      if (err) {
+        console.log(`JWT ERR: ${err}`)
+        reject({ code: 500, msg: "Internal server error" });
+      }
+      resolve(token);
+    })
+  })
+}
 
-  const newEvent = { ...event, body: JSON.stringify(body) };
+exports.handler = async event => {
+  const body = JSON.parse(event.body);
 
   try {
-    await validate(JSON.parse(newEvent.body).email);
+    await validate(body);
     const newUser = await createUser(JSON.parse(newEvent.body));
+    const token = await createToken(newUser);
 
     return {
-      code: 200,
-      body: JSON.stringify(newUser)
+      statusCode: 200,
+      body: token
     }
   } catch (err) {
     return {
