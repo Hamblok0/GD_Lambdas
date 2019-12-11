@@ -75,6 +75,7 @@ const createToken = payload => {
       if (err) {
         console.log(`JWT ERR: ${err}`)
         reject({ code: 500, msg: "Internal server error" });
+        return;
       }
       resolve(token);
     })
