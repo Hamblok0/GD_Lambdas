@@ -87,7 +87,7 @@ exports.handler = async event => {
 
   try {
     await validate(body);
-    const newUser = await createUser(JSON.parse(newEvent.body));
+    const newUser = await createUser(body);
     const token = await createToken(newUser);
 
     return {
