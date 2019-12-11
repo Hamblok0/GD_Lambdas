@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transformation: AWS::Serverless-2016-10-31
+
+Description: |
+  Save reading function for Tarot.io
+
+Resources: 
+  createUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs12.x
+      Handler: index.handler
