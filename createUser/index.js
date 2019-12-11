@@ -83,6 +83,7 @@ const createToken = payload => {
 }
 
 exports.handler = async event => {
+  console.log(event);
   const body = JSON.parse(event.body);
 
   try {
@@ -92,12 +93,14 @@ exports.handler = async event => {
 
     return {
       statusCode: 200,
-      body: token
+      body: JSON.stringify(token),
+      isBase64Encoded: false
     }
   } catch (err) {
     return {
-      code: err.code,
-      body: JSON.stringify(err.msg)
+      statusCode: err.code,
+      body: JSON.stringify(err.msg),
+      isBase64Encoded: false
     };
   }
 };
