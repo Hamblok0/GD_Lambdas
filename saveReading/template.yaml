@@ -5,7 +5,7 @@ Description: |
   Save reading function for Tarot.io
 
 Resources: 
-  createUser:
+  saveReading:
     Type: AWS::Serverless::Function
     Properties:
       Runtime: nodejs12.x
