@@ -45,7 +45,7 @@ const saveReading = data => {
 }
 
 exports.handler = async event => {
-  if (event.body) {
+  if (!event.body) {
       return {
           statusCode: 400,
           body: JSON.stringify("Error: No data submitted"),
