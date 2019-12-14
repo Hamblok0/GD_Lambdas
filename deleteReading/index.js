@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 
-AWS.config.update({ region: "us-east-2"  });
+AWS.config.update({ region: "us-east-2" });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
 const validate = input => {
@@ -41,19 +41,20 @@ const getUser = input => {
 
 const validateReading = (reading, user) => {
   return new Promise((resolve, reject) => {
-    const archives = JSON.parse(user.archived);
-    if (!archived || user.archived.length < 1) {
+    if (!user.archived) {
       reject({ code: 400, msg: "User does not have any saved readings"});
       return;
     }
-    if (!archived.includes(reading)) {
+    const archives = JSON.parse(user.archived);
+    if (!archives.includes(reading)) {
       reject({ code: 400, msg: "Archived reading does not exist for user" })
       return;
     }
     const params = {
       TableName: "Archives",
       Key: {
-        "id": reading
+        "id": reading,
+        "user": user.email
       }
     }
     ddb.get(params, (err, data) => {
@@ -71,12 +72,13 @@ const validateReading = (reading, user) => {
   })
 }
 
-const deleteReading = reading => {
+const deleteReading = (reading, user) => {
   return new Promise((resolve, reject) => {
     const params = {
       TableName: "Archives",
       Key: {
-        "id": reading
+        "id": reading,
+        "user": user.email
       }
     }
     ddb.delete(params, err => {
@@ -118,17 +120,21 @@ const updateUser = (reading, user) => {
 
 
 exports.handler = async event => {
-  const body = JSON.stringify({
-    email: "auser1@gmail.com",
-    reading: "2fb2c64d-741b-49a0-bef9-8591312250e4"
-  });
-  const input = JSON.parse(body);
+  if (!event.body) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify("No body submitted"),
+      isBase64Encoded: false
+    }
+  }
+  
+  const input = JSON.parse(input.body);
 
   try {
     const validated = await validate(input);
     const user = await getUser(validated);
     await validateReading(validated.reading, user);
-    await deleteReading(validated.reading);
+    await deleteReading(validated.reading, user);
     await updateUser(validated.reading, user);
     return {
       statusCode: 200,
