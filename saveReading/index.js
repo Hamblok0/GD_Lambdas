@@ -111,6 +111,10 @@ exports.handler = async event => {
   if (!event.body) {
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
       body: JSON.stringify("Error: No data submitted"),
       isBase64Encoded: false
     };
@@ -123,12 +127,20 @@ exports.handler = async event => {
 
     return {
       statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
       body: JSON.stringify("Reading successfully saved!"),
       isBase64Encoded: false
     };
   } catch (err) {
     return {
       statusCode: err.code,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Credentials': true,
+      },
       body: JSON.stringify(err.msg),
       isBase64Encoded: false
     };
