@@ -5,8 +5,7 @@ const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
 const validate = input => {
   return new Promise((resolve, reject) => {
-    const data = JSON.parse(input);
-    if (!data.user || !data.readings) {
+    if (!input.user || !input.readings) {
       reject({ code: 400, msg: "ERROR: Must send a user and readings" });
       return;
     }
@@ -16,7 +15,7 @@ const validate = input => {
 
 const getReadings = input => {
   return new Promise((resolve, reject) => {
-    const keys = input.readings.map(item => {
+    const keys = JSON.parse(input.readings).map(item => {
       return {
         user: input.user,
         id: item
@@ -55,7 +54,7 @@ exports.handler = async event => {
   }
 
   try {
-    const validated = await validate(event.body);
+    const validated = await validate(event.queryStringParameters);
     const readings = await getReadings(validated);
     await console.log(readings);
 
