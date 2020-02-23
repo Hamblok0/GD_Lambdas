@@ -3,13 +3,18 @@ const AWS = require("aws-sdk");
 AWS.config.update({ region: "us-east-2" });
 const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
-const validate = input => {
+const validate = (queryParams, multiValueQuery) => {
   return new Promise((resolve, reject) => {
-    if (!input.user || !input.readings) {
+    if (!queryParams.user || !multiValueQuery.readings) {
       reject({ code: 400, msg: "ERROR: Must send a user and readings" });
       return;
+    } else {
+      const data = {
+        user: queryParams.user,
+        readings: multiValueQuery.readings
+      }
+      resolve(data);
     }
-    resolve(data);
   });
 };
 
@@ -54,7 +59,7 @@ exports.handler = async event => {
   }
 
   try {
-    const validated = await validate(event.queryStringParameters);
+    const validated = await validate(event.queryStringParameters, event.multiValueQueryStringParameters);
     const readings = await getReadings(validated);
     await console.log(readings);
 
