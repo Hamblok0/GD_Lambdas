@@ -5,13 +5,13 @@ const ddb = new AWS.DynamoDB.DocumentClient({ apiVersion: "2012-08-10" });
 
 const validate = (queryParams, multiValueQuery) => {
   return new Promise((resolve, reject) => {
-    if (!queryParams.user || !multiValueQuery.readings) {
+    if (!queryParams.user || !multiValueQuery['readings[]']) {
       reject({ code: 400, msg: "ERROR: Must send a user and readings" });
       return;
     } else {
       const data = {
         user: queryParams.user,
-        readings: multiValueQuery.readings
+        readings: multiValueQuery['readings[]']
       }
       resolve(data);
     }
@@ -20,7 +20,7 @@ const validate = (queryParams, multiValueQuery) => {
 
 const getReadings = input => {
   return new Promise((resolve, reject) => {
-    const keys = JSON.parse(input.readings).map(item => {
+    const keys = input.readings.map(item => {
       return {
         user: input.user,
         id: item
@@ -33,7 +33,6 @@ const getReadings = input => {
         }
       }
     };
-    console.log("here");
     ddb.batchGet(params, (err, data) => {
       if (err) {
         console.log(`DDB ERROR: ${err}`);
@@ -46,18 +45,7 @@ const getReadings = input => {
 };
 
 exports.handler = async event => {
-  if (!event.body) {
-    return {
-      statusCode: 400,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Credentials': true,
-      },
-      body: JSON.stringify("Please submit a user and list of readings"),
-      isBase64Encoded: false
-    };
-  }
-
+  await console.log(event);
   try {
     const validated = await validate(event.queryStringParameters, event.multiValueQueryStringParameters);
     const readings = await getReadings(validated);
@@ -73,6 +61,7 @@ exports.handler = async event => {
       isBase64Encoded: false
     };
   } catch (err) {
+    console.log(err);
     return {
       statusCode: err.code,
       headers: {
