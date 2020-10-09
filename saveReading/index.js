@@ -80,7 +80,7 @@ const updateUser = data => {
             console.log(`DDB ERROR: ${err}`);
             reject({ code: 500, msg: "Internal server error" });
           }
-          resolve();
+          resolve(newArchive);
         });
       } else {
         const archive = JSON.parse(user.archived);
@@ -123,7 +123,7 @@ exports.handler = async event => {
   try {
     const validated = await validate(event.body);
     const savedReading = await saveReading(validated);
-    await updateUser(savedReading);
+    const newArchive = await updateUser(savedReading);
 
     return {
       statusCode: 200,
@@ -131,7 +131,7 @@ exports.handler = async event => {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Credentials': true,
       },
-      body: JSON.stringify("Reading successfully saved!"),
+      body: JSON.stringify({msg: "Reading successfully saved!", archive: newArchive}),
       isBase64Encoded: false
     };
   } catch (err) {
