@@ -100,7 +100,7 @@ const updateUser = data => {
             console.log(`DDB ERROR: ${err}`);
             reject({ code: 500, msg: "Internal server error" });
           }
-          resolve();
+          resolve(data.reading);
         });
       }
     });
